@@ -13,6 +13,7 @@ float angle = 0;
 ArrayList<MapLine> map = new ArrayList<MapLine>();
 PImage lander;
 PImage landerFiring;
+PImage fireSymbol;
 
 boolean wPressed = false;
 
@@ -28,14 +29,51 @@ void setup() {
   createMap();
   lander = loadImage("lander.png");
   landerFiring = loadImage("lander-firing.png");
-  
+  fireSymbol = loadImage("firesymbol.png");
   size(1500, 750);
   x = w/2;
   y = h/2;
 } 
 
+
+
 void createMap() {
   map.clear();
+  landingPad();
+}
+
+// Map 1
+void landingPad(){
+  for (int i = 0; i < w/3.0; i+= mapPieceSize) {
+    float xo = (float)i;
+    float x = (float)(i + mapPieceSize);
+
+    float yo = map.size() == 0 ? h : map.get((i/mapPieceSize) - 1).y;
+    float y = yo - 5;
+    MapLine newLine = new MapLine(xo, x, yo, y); 
+    map.add(newLine);
+  }
+ for (int i = (int)(w/3.0); i < (2.0/3) * w; i+= mapPieceSize) {
+    float xo = (float)i;
+    float x = (float)(i + mapPieceSize);
+
+    float yo = map.size() == 0 ? h : map.get((i/mapPieceSize) - 1).y;
+    float y = yo;
+    MapLine newLine = new MapLine(xo, x, yo, y); 
+    map.add(newLine);
+  }
+ for (int i = (int)((2.0/3) * w); i < w; i+= mapPieceSize) {
+    float xo = (float)i;
+    float x = (float)(i + mapPieceSize);
+    float yo = map.size() == 0 ? h : map.get((i/mapPieceSize) - 1).y;
+    float y = yo + 5;
+    MapLine newLine = new MapLine(xo, x, yo, y); 
+    map.add(newLine);
+  }
+}
+
+//Randomly generated terrain map
+void randomMap(){
   for (int i = 0; i < w; i+= mapPieceSize) {
     float xo = (float)i;
     float x = (float)(i + mapPieceSize);
@@ -150,12 +188,24 @@ boolean isColliding() {
 void processPhysics(){
   if(isColliding()){
     velY = min(0,velY);
+    //velX = velX == 0 ? 0 : (velX < 0 ?  velX + 0.01 : velX - 0.01);
+    velX = 0;
   }else{
     velY += gravity;
   }
   x += velX;
   y += velY;
   
+}
+
+void calculateLandingFireDistance(){
+  MapLine pieceUnderLander = map.get((int)(x/mapPieceSize));
+  float distance = (float)Math.pow(velY,2)/(2*(thrust-gravity));
+  float display_y = pieceUnderLander.getY(x) - distance;
+  imageMode(CENTER);
+  image(fireSymbol,x + 20,display_y);
+  textSize(10);
+  text(("" + distance).substring(0,min(("" + distance).length(),4)), x + 30,display_y);
 }
 
 void draw() {
@@ -172,9 +222,11 @@ void draw() {
   text("x:" + (mouseX), mouseX, mouseY);
   text("y:" + (mouseY), mouseX, mouseY + 10);
   processPhysics();
-  text("x velocity: " + velX, 0, 15);
-  text("y velocity: " + velY, 0, 25);
-  
+  fill(255);
+  textSize(26);
+  text("x velocity: " + velX, 0, 20);
+  text("y velocity: " + velY, 0, 40);
+  calculateLandingFireDistance();
   
 
 }

@@ -20,6 +20,10 @@ public class MapLine{
    this.b = y - (this.m * x);
  }
  
+ public float getY(float x){
+   return m * x + b;
+ }
+ 
  @Override
  public String toString(){
    return  "(" + xo +"," + yo + ") to ("+ x +"," + y + ") Slope: " + m +", Y-Inter: " + b;
