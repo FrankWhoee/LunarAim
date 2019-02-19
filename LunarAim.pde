@@ -127,23 +127,14 @@ boolean isColliding() {
       boolean intersectingTerrain = x_intersection <= max(mapline.x,mapline.xo) && x_intersection >= min(mapline.x,mapline.xo) && y_intersection <= max(mapline.y,mapline.yo) && y_intersection >= min(mapline.y,mapline.yo); 
         
       if (intersectingLander && intersectingTerrain) {
-       if(intersectingLander && intersectingTerrain){
-         println("Both intersecting!" + System.currentTimeMillis());
-       }else{
-         println(intersectingLander ? "Lander intersecting" : "Terrain intersecting");
-         println("Intersect: (" + x_intersection + "," + y_intersection + ")");
-         println("Terrain: " + mapline);
-       }
         fill(255, 0, 0);
         stroke(255, 0, 0);
         line(mapline.xo, mapline.yo, mapline.x, mapline.y);
         noStroke();
         //ellipse(x_intersection, y_intersection, 5, 5);
+        return true;
 
       } else {
-        if(mapline.m > 0 && (border.isVertical || mapline.isVertical)){
-          
-        }
         fill(0, 255, 0);
         noStroke();
         //ellipse(x_intersection, y_intersection, 2, 2);
@@ -154,6 +145,17 @@ boolean isColliding() {
 
 
   return false;
+}
+
+void processPhysics(){
+  if(isColliding()){
+    velY = min(0,velY);
+  }else{
+    velY += gravity;
+  }
+  x += velX;
+  y += velY;
+  
 }
 
 void draw() {
@@ -169,9 +171,10 @@ void draw() {
   processIO();
   text("x:" + (mouseX), mouseX, mouseY);
   text("y:" + (mouseY), mouseX, mouseY + 10);
-  isColliding();
+  processPhysics();
+  text("x velocity: " + velX, 0, 15);
+  text("y velocity: " + velY, 0, 25);
+  
+  
 
-  x += velX;
-  y += velY;
-  velY += gravity;
 }
