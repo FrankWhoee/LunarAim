@@ -6,20 +6,22 @@ public class MapLine{
  
  public float m;
  public float b;
- 
+  public boolean isVertical= false;
  
  public MapLine(float xo, float x, float yo, float y){
    this.xo = xo;
    this.x = x;
    this.yo = yo;
    this.y = y;
-   
-   m = (y - yo)/(x - xo);
-   b = y - (m * x);
+   if(x - xo == 0){
+     this.isVertical = true;
+   }
+   this.m = (y - yo)/(x - xo);
+   this.b = y - (this.m * x);
  }
  
  @Override
  public String toString(){
-   return  "(" + xo +"," + yo + ") to ("+ x +"," + y + ")";
+   return  "(" + xo +"," + yo + ") to ("+ x +"," + y + ") Slope: " + m +", Y-Inter: " + b;
  }
 }
