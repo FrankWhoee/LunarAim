@@ -17,6 +17,9 @@ PImage fireSymbol;
 
 boolean wPressed = false;
 
+Toggle aimAssist = new Toggle();
+Toggle landAssist = new Toggle();
+
 // CONSTANTS
 final float thrust =  0.005;
 final float gravity = 0.00162;
@@ -109,11 +112,11 @@ void renderLander() {
 }
 
 void processIO() {
-  if (keyPressed) {
+  if(keyPressed){
     if (key == 'a') {
-      angle -= 1;
+      angle -= 2;
     } else if (key =='d') {
-      angle += 1;
+      angle += 2;
     }
 
     if (key == 'l') {
@@ -131,6 +134,17 @@ void processIO() {
   }
 }
 
+void keyPressed(){
+    
+    
+    if (key == '1'){
+      aimAssist.toggle();
+    }
+    if (key == '2'){
+      landAssist.toggle();
+    }
+}
+
 ArrayList<MapLine> getLanderBorders() {
   ArrayList<MapLine> borders = new ArrayList<MapLine>();
   MapLine left = new MapLine(x - lander_w/2, x - lander_w/2, y + lander_h/2, y - lander_h/2);
@@ -141,9 +155,6 @@ ArrayList<MapLine> getLanderBorders() {
   borders.add(right);
   borders.add(top);
   borders.add(bottom);
-  for(MapLine ml : borders){
-    //println(ml);
-  }
   return borders;
 }
 
@@ -200,12 +211,23 @@ void processPhysics(){
 
 void calculateLandingFireDistance(){
   MapLine pieceUnderLander = map.get((int)(x/mapPieceSize));
-  float distance = (float)Math.pow(velY,2)/(2*(thrust-gravity));
+  float h = pieceUnderLander.getY(x) - y;
+  float accelerationWithThrust = thrust-gravity;
+  float distance = (float)((0.5*Math.pow(velY,2) + gravity * h)/accelerationWithThrust);
   float display_y = pieceUnderLander.getY(x) - distance;
   imageMode(CENTER);
   image(fireSymbol,x + 20,display_y);
   textSize(10);
-  text(("" + distance).substring(0,min(("" + distance).length(),4)), x + 30,display_y);
+  text(("d2: " + distance).substring(0,min(("" + distance).length(),10)), x + 30,display_y);
+}
+
+void renderAimAssist(){
+  for(int t = 50; t < 1000; t += 50){
+    float futureX = velX * t + x;
+    float futureY = y + (float)((Math.pow(velY + gravity * t,2) - Math.pow(velY,2))/(2*gravity));
+    fill(0,255,0);
+    ellipse(futureX,futureY, 2,2);
+  }
 }
 
 void draw() {
@@ -219,14 +241,19 @@ void draw() {
   renderMap();
   renderLander();
   processIO();
-  text("x:" + (mouseX), mouseX, mouseY);
-  text("y:" + (mouseY), mouseX, mouseY + 10);
+  textSize(10);
+  text("x:" + (mouseX), mouseX + 5, mouseY);
+  text("y:" + (mouseY), mouseX+5, mouseY + 10);
   processPhysics();
   fill(255);
   textSize(26);
   text("x velocity: " + velX, 0, 20);
   text("y velocity: " + velY, 0, 40);
-  calculateLandingFireDistance();
-  
+  if(aimAssist.state()){
+    renderAimAssist();
+  }
+  if(landAssist.state()){
+    calculateLandingFireDistance();
+  }
 
 }
