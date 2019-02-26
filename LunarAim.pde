@@ -6,9 +6,15 @@ float lander_h = 18;
 
 float w;
 float h;
+
 float velX = 0;
 float velY = 0;
 float angle = 0;
+float fuel = 500;
+int score = 0;
+
+int scoreTextTimer = 0;
+String scoreText = "";
 
 ArrayList<MapLine> map = new ArrayList<MapLine>();
 PImage lander;
@@ -42,7 +48,8 @@ void setup() {
 
 void createMap() {
   map.clear();
-  landingPad();
+  //landingPad();
+  randomMap();
 }
 
 // Map 1
@@ -82,7 +89,7 @@ void randomMap(){
     float x = (float)(i + mapPieceSize);
     float yo = map.size() == 0 ? h : map.get((i/mapPieceSize) - 1).y;
     float y = Math.min((yo + (float)(Math.random() * 100) - 55),h);
-    if(Math.random() > 0.9){
+    if(Math.random() > 0.75){
       y = yo;
     }
     
@@ -125,9 +132,10 @@ void processIO() {
       x += -1;
     }
   }
-  if (mousePressed) {
+  if (mousePressed && fuel > 0) {
     velX += thrust * Math.sin(radians(angle));
     velY -= thrust * Math.cos(radians(angle));
+    fuel -= 0.1;
     wPressed = true;
   } else {
     wPressed = false;
@@ -230,12 +238,16 @@ void renderAimAssist(){
   }
 }
 
-void draw() {
-  if (keyPressed && key =='r') {
+void reset(){
     x = w/2;
     y = h/2;
     velX = 0;
     velY = 0;
+}
+
+void draw() {
+  if (keyPressed && key =='r') {
+    reset();
   }
   background(0);
   renderMap();
@@ -249,11 +261,35 @@ void draw() {
   textSize(26);
   text("x velocity: " + velX, 0, 20);
   text("y velocity: " + velY, 0, 40);
+  text("fuel: " + fuel, 0, 60);
+  text("score: " + score, 0, 80);
+  
+  if(scoreTextTimer > 0){
+    pushMatrix();
+    textAlign(CENTER);
+    text(scoreText, w/2,h/2);
+    scoreTextTimer--;
+    popMatrix();
+  }
+  
   if(aimAssist.state()){
     renderAimAssist();
   }
   if(landAssist.state()){
     calculateLandingFireDistance();
   }
-
+  if(isColliding()){
+    if(Math.abs(velX) < 0.05 && Math.abs(velY) < 0.05){
+      score += 250;
+      scoreText = "CONGRATS! A PERFECT LANDING!\n250 ADDED TO SCORE";
+    }else if(Math.abs(velX) < 0.1 && Math.abs(velY) < 0.1){
+      score += 150;
+      scoreText = "A MEDIOCRE LANDING!\n250 ADDED TO SCORE";
+    }else if(Math.abs(velX) < 0.2 && Math.abs(velY) < 0.2){
+      score += 50;
+      scoreText = "A HORRIBLE, BUT ACCEPTABLE LANDING!\n250 ADDED TO SCORE";
+    }
+    scoreTextTimer = 100;
+    reset();
+  }
 }
