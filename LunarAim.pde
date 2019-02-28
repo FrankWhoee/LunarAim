@@ -25,6 +25,7 @@ boolean wPressed = false;
 
 Toggle aimAssist = new Toggle();
 Toggle landAssist = new Toggle();
+Toggle angleAssist = new Toggle();
 
 // CONSTANTS
 final float thrust =  0.005;
@@ -48,8 +49,8 @@ void setup() {
 
 void createMap() {
   map.clear();
-  //landingPad();
-  randomMap();
+  landingPad();
+  //randomMap();
 }
 
 // Map 1
@@ -125,7 +126,7 @@ void processIO() {
     } else if (key =='d') {
       angle += 2;
     }
-
+    
     if (key == 'l') {
       x += 1;
     } else if (key =='j') {
@@ -135,6 +136,12 @@ void processIO() {
   if (mousePressed && fuel > 0) {
     velX += thrust * Math.sin(radians(angle));
     velY -= thrust * Math.cos(radians(angle));
+    if(Math.abs(velX) < 0.001){
+      velX = 0;
+    }
+    if(Math.abs(velY) < 0.001){
+      velY = 0;
+    }
     fuel -= 0.1;
     wPressed = true;
   } else {
@@ -142,14 +149,15 @@ void processIO() {
   }
 }
 
-void keyPressed(){
-    
-    
+void keyPressed(){    
     if (key == '1'){
       aimAssist.toggle();
     }
     if (key == '2'){
       landAssist.toggle();
+    }
+    if (key == '3'){
+      angleAssist.toggle();
     }
 }
 
@@ -238,6 +246,26 @@ void renderAimAssist(){
   }
 }
 
+void renderAngleAssist(){
+  stroke(0,255,0);
+  line(x,y,x,y-20);
+  line(x,y,(float)(x + Math.sin(radians(angle)) * 20), (float)(y - Math.cos(radians(angle)) * 20));
+  noFill();
+  if(angle > 360){
+    angle -= 360;
+  }
+  if(angle < -360){
+    angle += 360;
+  }
+  if(angle > 0){
+    arc(x,y,15,15,radians(-90),radians(angle - 90));
+  }else{
+    arc(x,y,15,15,radians(angle - 90),radians(-90));
+  }
+  textSize(10);
+  text(angle,x + 20, y - 20);
+}
+
 void reset(){
     x = w/2;
     y = h/2;
@@ -254,6 +282,7 @@ void draw() {
   renderLander();
   processIO();
   textSize(10);
+  textAlign(LEFT);
   text("x:" + (mouseX), mouseX + 5, mouseY);
   text("y:" + (mouseY), mouseX+5, mouseY + 10);
   processPhysics();
@@ -263,15 +292,14 @@ void draw() {
   text("y velocity: " + velY, 0, 40);
   text("fuel: " + fuel, 0, 60);
   text("score: " + score, 0, 80);
-  
   if(scoreTextTimer > 0){
-    pushMatrix();
     textAlign(CENTER);
     text(scoreText, w/2,h/2);
     scoreTextTimer--;
-    popMatrix();
   }
-  
+  if(angleAssist.state()){
+    renderAngleAssist();
+  }
   if(aimAssist.state()){
     renderAimAssist();
   }
@@ -279,17 +307,17 @@ void draw() {
     calculateLandingFireDistance();
   }
   if(isColliding()){
-    if(Math.abs(velX) < 0.05 && Math.abs(velY) < 0.05){
+    if(Math.abs(velX) < 0.1 && Math.abs(velY) < 0.1){
       score += 250;
       scoreText = "CONGRATS! A PERFECT LANDING!\n250 ADDED TO SCORE";
-    }else if(Math.abs(velX) < 0.1 && Math.abs(velY) < 0.1){
-      score += 150;
-      scoreText = "A MEDIOCRE LANDING!\n250 ADDED TO SCORE";
     }else if(Math.abs(velX) < 0.2 && Math.abs(velY) < 0.2){
+      score += 150;
+      scoreText = "A MEDIOCRE LANDING!\n150 ADDED TO SCORE";
+    }else if(Math.abs(velX) < 0.3 && Math.abs(velY) < 0.3){
       score += 50;
-      scoreText = "A HORRIBLE, BUT ACCEPTABLE LANDING!\n250 ADDED TO SCORE";
+      scoreText = "A HORRIBLE, BUT ACCEPTABLE LANDING!\n50 ADDED TO SCORE";
     }
-    scoreTextTimer = 100;
+    scoreTextTimer = 150;
     reset();
   }
 }
