@@ -46,11 +46,10 @@ void setup() {
 } 
 
 
-
 void createMap() {
   map.clear();
-  landingPad();
-  //randomMap();
+  //landingPad();
+  randomMap();
 }
 
 // Map 1
@@ -229,7 +228,7 @@ void calculateLandingFireDistance(){
   MapLine pieceUnderLander = map.get((int)(x/mapPieceSize));
   float h = pieceUnderLander.getY(x) - y;
   float accelerationWithThrust = thrust-gravity;
-  float distance = (float)((0.5*Math.pow(velY,2) + gravity * h)/accelerationWithThrust);
+  float distance = (float)((0.5*Math.pow(velY,3) + gravity * pieceUnderLander.getY(x) - gravity * y)/(accelerationWithThrust));
   float display_y = pieceUnderLander.getY(x) - distance;
   imageMode(CENTER);
   image(fireSymbol,x + 20,display_y);
@@ -258,9 +257,9 @@ void renderAngleAssist(){
     angle += 360;
   }
   if(angle > 0){
-    arc(x,y,15,15,radians(-90),radians(angle - 90));
+    arc(x,y,20,20,radians(-90),radians(angle - 90));
   }else{
-    arc(x,y,15,15,radians(angle - 90),radians(-90));
+    arc(x,y,20,20,radians(angle - 90),radians(-90));
   }
   textSize(10);
   text(angle,x + 20, y - 20);
@@ -271,6 +270,7 @@ void reset(){
     y = h/2;
     velX = 0;
     velY = 0;
+    angle = 0;
 }
 
 void draw() {
@@ -316,6 +316,9 @@ void draw() {
     }else if(Math.abs(velX) < 0.3 && Math.abs(velY) < 0.3){
       score += 50;
       scoreText = "A HORRIBLE, BUT ACCEPTABLE LANDING!\n50 ADDED TO SCORE";
+    }else{
+      score -= 250;
+      scoreText = "YOU CRASH LANDED.\n250 TAKEN AWAY FROM SCORE.";
     }
     scoreTextTimer = 150;
     reset();
