@@ -24,6 +24,10 @@ public class MapLine{
    return m * x + b;
  }
  
+ public Boolean isFlat(){
+   return m == 0;
+ }
+ 
  @Override
  public String toString(){
    return  "(" + xo +"," + yo + ") to ("+ x +"," + y + ") Slope: " + m +", Y-Inter: " + b;

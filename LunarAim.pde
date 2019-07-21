@@ -224,8 +224,12 @@ void processPhysics(){
   
 }
 
+MapLine getPieceUnderLander(){
+  return map.get((int)(x/mapPieceSize));
+}
+
 void calculateLandingFireDistance(){
-  MapLine pieceUnderLander = map.get((int)(x/mapPieceSize));
+  MapLine pieceUnderLander = getPieceUnderLander();
   float h = pieceUnderLander.getY(x) - y;
   float accelerationWithThrust = thrust-gravity;
   float distance = (float)((0.5*Math.pow(velY,3) + gravity * pieceUnderLander.getY(x) - gravity * y)/(accelerationWithThrust));
@@ -273,6 +277,25 @@ void reset(){
     angle = 0;
 }
 
+int landingArea(){
+  int originI = map.indexOf(getPieceUnderLander());
+  int rightPieces = 0;
+  for(int i = originI + 1; i < map.size() - 1; i++){
+    if(!map.get(i).isFlat()){
+      break;
+    }
+    rightPieces++;
+  }
+  int leftPieces = 0;
+  for(int i = originI - 1; i >= 0; i--){
+    if(!map.get(i).isFlat()){
+      break;
+    }
+    leftPieces++;
+  }
+  return leftPieces + rightPieces + 1;
+}
+
 void draw() {
   if (keyPressed && key =='r') {
     reset();
@@ -307,19 +330,28 @@ void draw() {
     calculateLandingFireDistance();
   }
   if(isColliding()){
-    if(Math.abs(velX) < 0.1 && Math.abs(velY) < 0.1){
-      score += 250;
-      scoreText = "CONGRATS! A PERFECT LANDING!\n250 ADDED TO SCORE";
-    }else if(Math.abs(velX) < 0.2 && Math.abs(velY) < 0.2){
-      score += 150;
-      scoreText = "A MEDIOCRE LANDING!\n150 ADDED TO SCORE";
-    }else if(Math.abs(velX) < 0.3 && Math.abs(velY) < 0.3){
-      score += 50;
-      scoreText = "A HORRIBLE, BUT ACCEPTABLE LANDING!\n50 ADDED TO SCORE";
+    int area = landingArea();
+    println(area);
+    float bonus = 1.5/(0.5*float(area));
+    
+    if(Math.abs(velX) < 0.1 && Math.abs(velY) < 0.1 && getPieceUnderLander().isFlat()){
+      int addedScore = int(float(250) * bonus);
+      score += addedScore;
+      print(addedScore);
+      scoreText = "CONGRATS! A PERFECT LANDING!\n"+addedScore+" ADDED TO SCORE. BONUS: " + bonus + "x";
+    }else if(Math.abs(velX) < 0.2 && Math.abs(velY) < 0.2 && getPieceUnderLander().isFlat()){
+      int addedScore = int(float(150) * bonus);
+      score += addedScore;
+      scoreText = "A MEDIOCRE LANDING!\n"+addedScore+" ADDED TO SCORE. BONUS: " + bonus + "x";
+    }else if(Math.abs(velX) < 0.3 && Math.abs(velY) < 0.3 && getPieceUnderLander().isFlat()){
+      int addedScore = int(float(50) * bonus);
+      score += addedScore;
+      scoreText = "A HORRIBLE BUT ACCEPTABLE LANDING!\n"+addedScore+" ADDED TO SCORE. BONUS: " + bonus + "x";
     }else{
       score -= 250;
       scoreText = "YOU CRASH LANDED.\n250 TAKEN AWAY FROM SCORE.";
     }
+    
     scoreTextTimer = 150;
     reset();
   }
