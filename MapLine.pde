@@ -28,6 +28,18 @@ public class MapLine{
    return m == 0;
  }
  
+ public JSONObject toJSON(){
+   JSONObject properties = new JSONObject();
+   properties.setFloat("xo", xo);
+   properties.setFloat("x", x);
+   properties.setFloat("y", y);
+   properties.setFloat("yo", yo);
+   properties.setFloat("m", m);
+   properties.setFloat("b", b);
+   properties.setBoolean("isVertical", isVertical);
+   return properties;
+ }
+ 
  @Override
  public String toString(){
    return  "(" + xo +"," + yo + ") to ("+ x +"," + y + ") Slope: " + m +", Y-Inter: " + b;
