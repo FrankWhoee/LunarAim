@@ -22,7 +22,6 @@ nb_actions = env.action_space.shape
 
 # Next, we build a very simple model.
 model = Sequential()
-print(env.observation_space.shape[0])
 model.add(Flatten(input_shape=(1,) + env.observation_space.shape))
 model.add(Dense(16))
 model.add(Activation('relu'))
