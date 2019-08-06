@@ -25,6 +25,15 @@ PImage fireSymbol;
 
 boolean wPressed = false;
 
+JSONArray actionArray = new JSONArray();
+ArrayList<int[]> actionSet = new ArrayList<int[]>();
+int action_index = 0;
+
+JSONArray stateArray = new JSONArray();
+int state_index = 0;
+
+int collision_index = 0;
+
 Toggle aimAssist = new Toggle();
 Toggle landAssist = new Toggle();
 Toggle angleAssist = new Toggle();
@@ -33,6 +42,8 @@ Toggle angleAssist = new Toggle();
 final float thrust =  0.005;
 final float gravity = 0.00162;
 final int mapPieceSize = 20;
+
+String sessionName = (System.currentTimeMillis()/1000L) + "";
 
 void setup() {
   background(0);
@@ -45,6 +56,14 @@ void setup() {
   size(1500, 750);
   x = w/2;
   y = h/2;
+  actionSet.add(0,new int[]{0,0});
+  actionSet.add(1,new int[]{0,1});
+  actionSet.add(2,new int[]{-1,0});
+  actionSet.add(3,new int[]{-1,1});
+  actionSet.add(4,new int[]{1,0});
+  actionSet.add(5,new int[]{1,1});
+  
+  saveJSONObject(getConstants(), "data/"+sessionName+"/constants.json");
 } 
 
 JSONArray mapToJSONArray(){
@@ -58,29 +77,32 @@ JSONArray mapToJSONArray(){
  return jsonMap;
 }
 
+JSONObject getConstants() {
+  JSONObject constants = new JSONObject();
+  constants.setFloat("thrust", thrust);
+  constants.setFloat("gravity", gravity);
+  constants.setFloat("mapPieceSize", float(mapPieceSize));
+
+  constants.setFloat("lander_w", lander_w);
+  constants.setFloat("lander_h", lander_h);
+
+  constants.setFloat("w", w);
+  constants.setFloat("h", h);
+
+  constants.setJSONArray("map", mapToJSONArray());
+
+  return constants;
+}
+
 JSONObject getGameState() {
   JSONObject gameState = new JSONObject();
-  JSONObject constants = new JSONObject();
-  constants.put("thrust", thrust);
-  constants.put("gravity", gravity);
-  constants.put("mapPieceSize", float(mapPieceSize));
-  gameState.setJSONObject("constants", constants);
   gameState.setFloat("x", x);
   gameState.setFloat("y", y);
-
-  gameState.setFloat("lander_w", lander_w);
-  gameState.setFloat("lander_h", lander_h);
-
-  gameState.setFloat("w", w);
-  gameState.setFloat("h", h);
-
   gameState.setFloat("velX", velX);
   gameState.setFloat("velY", velY);
   gameState.setFloat("angle", angle);
   gameState.setFloat("fuel", fuel);
   gameState.setFloat("score", score);
-
-  gameState.setJSONArray("map", mapToJSONArray());
 
   return gameState;
 }
@@ -157,12 +179,19 @@ void renderLander() {
   popMatrix();
 }
 
-void processIO() {
+int[] processIO() {
+  stateArray.setJSONObject(state_index,getGameState());
+  state_index++;
+  int[] action = new int[2];
   if (keyPressed) {
     if (key == 'a') {
       angle -= 2;
+      action[0] = -1;
     } else if (key =='d') {
       angle += 2;
+      action[0] = 1;
+    }else{
+      action[0] = 0;
     }
 
     if (key == 'l') {
@@ -172,6 +201,7 @@ void processIO() {
     }
   }
   if (mousePressed && fuel > 0) {
+    action[1] = 1;
     velX += thrust * Math.sin(radians(angle));
     velY -= thrust * Math.cos(radians(angle));
     if (Math.abs(velX) < 0.001) {
@@ -184,7 +214,9 @@ void processIO() {
     wPressed = true;
   } else {
     wPressed = false;
+    action[1] = 0;
   }
+  return action;
 }
 
 void keyPressed() {    
@@ -332,6 +364,16 @@ int landingArea() {
   return leftPieces + rightPieces + 1;
 }
 
+int getActionIndex(int[] action){
+  for(int i = 0; i < actionSet.size(); i++){
+    int[] a = actionSet.get(i);
+    if(a[0] == action[0] && a[1] == action[1]){
+      return i;
+    }
+  }
+  return -1;
+}
+
 void draw() {
   if (keyPressed && key =='r') {
     reset();
@@ -339,7 +381,9 @@ void draw() {
   background(0);
   renderMap();
   renderLander();
-  processIO();
+  int[] action = processIO();
+  actionArray.setInt(action_index, getActionIndex(action));
+  action_index++;
   textSize(10);
   textAlign(LEFT);
   text("x:" + (mouseX), mouseX + 5, mouseY);
@@ -386,7 +430,9 @@ void draw() {
       score -= 250;
       scoreText = "YOU CRASH LANDED.\n250 TAKEN AWAY FROM SCORE.";
     }
-
+    saveJSONArray(actionArray, "data/"+sessionName+"/"+collision_index+"-actions.json");
+    saveJSONArray(stateArray, "data/"+sessionName+"/"+collision_index+"-states.json");
+    collision_index++;
     scoreTextTimer = 150;
     reset();
   }

@@ -36,6 +36,7 @@ model.add(Activation('relu'))
 model.add(Dense(6))
 model.add(Activation('linear'))
 print(model.summary())
+model.load_weights('dqn_lunar-v0_weights.h5f')
 
 # Finally, we configure and compile our agent. You can use every built-in Keras optimizer and
 # even the metrics!
